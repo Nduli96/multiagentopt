@@ -108,11 +108,14 @@ Two defaults are worth knowing:
 
 ## Install
 
-Copy this folder into a project, as a project skill:
+From the root of your project, add it as a project skill:
 
 ```bash
-cp -r multiagentopt <your-project>/.claude/skills/multiagentopt
+git clone --depth 1 https://github.com/Nduli96/multiagentopt .claude/skills/multiagentopt
+rm -rf .claude/skills/multiagentopt/.git
 ```
+
+The second line stops your project's git from treating the skill as a nested repository.
 
 It has to be at that path, because `patch.py --verify` assumes the repo is three levels above itself. Installed under `~/.claude/skills`, it would look in your home folder, check nothing and still report success.
 
