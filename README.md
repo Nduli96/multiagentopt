@@ -117,3 +117,7 @@ cp -r multiagentopt <your-project>/.claude/skills/multiagentopt
 It has to be at that path, because `patch.py --verify` assumes the repo is three levels above itself. Installed under `~/.claude/skills`, it would look in your home folder, check nothing and still report success.
 
 Then type `/multiagentopt` followed by your task list.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
