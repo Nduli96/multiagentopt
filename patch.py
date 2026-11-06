@@ -8,7 +8,7 @@
 - Atomic write (temporary file + os.replace).
 
 API (from a script in the scratchpad):
-    import sys; sys.path.insert(0, r"<repo>/.claude/skills/multiagentopt")
+    import sys; sys.path.insert(0, r"<folder of this file>")
     from patch import replace, insert_after, insert_before, append, new_file
     replace(path, old, new, count=1, enc="latin-1")
     insert_after(path, anchor, text, enc="latin-1")    # anchor must be unique
@@ -22,7 +22,7 @@ another encoding (utf-8, cp1252, cp1250...) pass the encoding of THAT file.
 
 CLI:
     python patch.py spec.json          # list of operations, see _run_spec
-    python patch.py --verify [file..]  # U+FFFD and line endings against HEAD
+    python patch.py --verify [file..]  # from inside the repo: U+FFFD and line endings against HEAD
 """
 import hashlib
 import json
@@ -212,21 +212,29 @@ def new_file(path, text, enc="latin-1", crlf=True):
 
 
 def _repo_root():
-    here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.abspath(os.path.join(here, "..", "..", ".."))
+    # The repo being worked on, not this file's location: the skill can live outside it.
+    r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True)
+    return r.stdout.decode("utf-8", "replace").strip() if r.returncode == 0 else None
 
 
 def verify(paths=None):
     """Compares with HEAD: U+FFFD must not increase, line endings not mixed."""
     root = _repo_root()
+    if not root:
+        print("verify: not inside a git repository, nothing was checked")
+        return False
+    explicit = bool(paths)
     if not paths:
         out = subprocess.run(["git", "-C", root, "diff", "--name-only"],
                              capture_output=True).stdout.decode("utf-8", "replace")
         paths = [p for p in out.splitlines() if p.strip()]
     bad = 0
     for p in paths:
-        full = p if os.path.isabs(p) else os.path.join(root, p)
+        full = os.path.abspath(p) if explicit else os.path.join(root, p)
         if not os.path.isfile(full):
+            if explicit:
+                bad += 1
+                print("%s: file not found" % p)
             continue
         rel = os.path.relpath(full, root).replace("\\", "/")
         cur = _read(full)

@@ -80,25 +80,25 @@ It needs Python 3.7+ and git, and has no other dependencies.
 
 ```python
 import sys
-sys.path.insert(0, r"<repo>/.claude/skills/multiagentopt")
+sys.path.insert(0, r"<path to>/.claude/skills/multiagentopt")
 from patch import replace, insert_after, insert_before, append, new_file
 
 replace("src/app.py", "old text", "new text", enc="utf-8")
 insert_after("src/app.py", "unique anchor\n", "added line\n", enc="utf-8")
 ```
 
-After the agents finish, compare the changed files with `HEAD`:
+After the agents finish, compare the changed files with `HEAD`, from inside the repository:
 
 ```bash
-python .claude/skills/multiagentopt/patch.py --verify
+python ~/.claude/skills/multiagentopt/patch.py --verify
 ```
 
-This reports any new U+FFFD replacement characters (a sign of a broken encoding) and any mixed line endings.
+This reports any new U+FFFD replacement characters (a sign of a broken encoding) and any mixed line endings. Outside a git repository, it reports an error instead of checking nothing.
 
 With no arguments, it only checks the files that `git diff` lists. Pass the paths explicitly to cover new untracked files, or a file whose only change is its line endings when `core.autocrlf` is on:
 
 ```bash
-python .claude/skills/multiagentopt/patch.py --verify src/new_file.py
+python ~/.claude/skills/multiagentopt/patch.py --verify src/new_file.py
 ```
 
 Two defaults are worth knowing:
@@ -108,16 +108,11 @@ Two defaults are worth knowing:
 
 ## Install
 
-From the root of your project, add it as a project skill:
+Clone it into your personal skills, so it works in every project:
 
 ```bash
-git clone --depth 1 https://github.com/Nduli96/multiagentopt .claude/skills/multiagentopt
-rm -rf .claude/skills/multiagentopt/.git
+git clone https://github.com/Nduli96/multiagentopt ~/.claude/skills/multiagentopt
 ```
-
-The second line stops your project's git from treating the skill as a nested repository.
-
-It has to be at that path, because `patch.py --verify` assumes the repo is three levels above itself. Installed under `~/.claude/skills`, it would look in your home folder, check nothing and still report success.
 
 Then type `/multiagentopt` followed by your task list.
 

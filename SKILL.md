@@ -80,10 +80,10 @@ Inside a single task the agent of that task decides its own contract. If it spli
 
 ## 5. Brief for each agent
 
-It contains the task text, the contract, the paths already known, the rules below and the report format. Copy the rules **verbatim**:
+It contains the task text, the contract, the paths already known, the rules below and the report format. Copy the rules **verbatim**, replacing `<skill dir>` with the absolute path of this skill's folder, the base directory shown when the skill loaded. Agents cannot find it by themselves:
 
 1. The working tree is **shared with other agents working right now**. Never `git checkout`/`restore`/`stash`/`reset`/`clean`, never `add`/`commit`/`push`. To see the original of a file: `git show HEAD:<path>`.
-2. **Existing** files are changed **only** with `.claude/skills/multiagentopt/patch.py`. From a script in the scratchpad: `sys.path.insert(0, r"<repo>/.claude/skills/multiagentopt")`, then `from patch import replace, insert_after, insert_before, append, new_file`. Never use Edit or Write on an existing file: they take no lock, and they can damage files that are not UTF-8.
+2. **Existing** files are changed **only** with `<skill dir>/patch.py`. From a script in the scratchpad: `sys.path.insert(0, r"<skill dir>")`, then `from patch import replace, insert_after, insert_before, append, new_file`. Never use Edit or Write on an existing file: they take no lock, and they can damage files that are not UTF-8.
 3. Pass `enc=` with **the encoding of the file being changed**, such as `enc="utf-8"`. The default is `latin-1`, which is only safe on a UTF-8 file when the text is pure ASCII.
 4. Keep changes **targeted**. Never rewrite a shared file in full, and reread the area right before changing it, because another agent may have changed it.
 5. New files: `new_file(...)`, which fails if the file already exists, or Write with pure ASCII content. Pass `crlf=False` to `new_file` unless the project uses CRLF.
@@ -94,7 +94,7 @@ It contains the task text, the contract, the paths already known, the rules belo
 
 ## 6. Integration (main session)
 
-1. Run `python .claude/skills/multiagentopt/patch.py --verify`: no more U+FFFD than HEAD, no mixed line endings.
+1. From inside the repo, run `python "<skill dir>/patch.py" --verify`: no more U+FFFD than HEAD, no mixed line endings.
 2. Check the contract was honored: ids and names unique, and each shared structure, name and signature matching on both sides.
 3. **Build once.** Outside a Workflow, send errors back to the agent of that task with `SendMessage`, or fix them here. In a Workflow run, fix them here or start a new agent (see Traps).
 4. Package or deploy **once**, if the project has such a step and the user asked for it.
